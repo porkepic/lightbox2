@@ -8,6 +8,8 @@
  * Copyright 2007, 2015 Lokesh Dhakar
  * Released under the MIT license
  * https://github.com/lokesh/lightbox2/blob/master/LICENSE
+ *
+ * @preserve
  */
 
 // Uses Node, AMD or browser globals to create a module.
@@ -51,6 +53,7 @@
     showImageNumberLabel: true,
     wrapAround: false,
     disableScrolling: false,
+    zoomable: false,
     /*
     Sanitize Title
     If the caption data is trusted, for example you are hardcoding it in, then leave this to false.
@@ -93,7 +96,7 @@
   // Attach event handlers to the new DOM elements. click click click
   Lightbox.prototype.build = function() {
     var self = this;
-    $('<div id="lightboxOverlay" class="lightboxOverlay"></div><div id="lightbox" class="lightbox"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" /><div class="lb-nav"><a class="lb-prev" href="" ></a><a class="lb-next" href="" ></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div>').appendTo($('body'));
+    $('<div id="lightboxOverlay" class="lightboxOverlay"></div><div id="lightbox" class="lightbox"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" /><a class="lb-zoom"></a><div class="lb-nav"><a class="lb-prev" href="" ></a><a class="lb-next" href="" ></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div>').appendTo($('body'));
 
     // Cache jQuery objects
     this.$lightbox       = $('#lightbox');
@@ -153,6 +156,11 @@
       } else {
         self.changeImage(self.currentImageIndex + 1);
       }
+      return false;
+    });
+
+    this.$lightbox.find('.lb-zoom').on('click', function() {
+      window.open(self.$image[0].src, '_blank');
       return false;
     });
 
@@ -252,6 +260,11 @@
       $('body').addClass('lb-disable-scrolling');
     }
 
+    // Show zoom lens when needed
+    if (this.options.zoomable) {
+        $('.lb-zoom').show();
+    }
+
     this.changeImage(imageNumber);
   };
 
@@ -304,7 +317,8 @@
           maxImageHeight = self.options.maxHeight;
         }
 
-        // Is there a fitting issue?
+        // Is the current image's width or height is greater than the maxImageWidth or maxImageHeight
+        // option than we need to size down while maintaining the aspect ratio.
         if ((preloader.width > maxImageWidth) || (preloader.height > maxImageHeight)) {
           if ((preloader.width / maxImageWidth) > (preloader.height / maxImageHeight)) {
             imageWidth  = maxImageWidth;
